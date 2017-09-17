@@ -27,9 +27,8 @@ pub struct Config<'a> {
 }
 
 fn main() {
-    let path = env::home_dir()
+    let path = env::current_dir()
         .expect("Failed to get home directory")
-        .join(".config")
         .join("runner.toml");
 
     let mut file = File::open(path).expect("Failed to open configuration file");
