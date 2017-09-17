@@ -4,16 +4,15 @@ extern crate serde_derive;
 extern crate time;
 extern crate toml;
 
+mod mails;
+
 use std::env;
 use std::fs::File;
 use std::io::Read;
-use std::process::{Command, exit, ExitStatus};
-use std::time::{Duration, Instant};
+use std::process::{Command, exit};
+use std::time::Instant;
 
-use lettre::email::{Email, EmailBuilder};
-use lettre::email::error::Error;
-use lettre::transport::smtp::{SmtpTransportBuilder, SUBMISSION_PORT};
-use lettre::transport::EmailTransport;
+use mails::{CommandStatusMail, send_mail};
 
 fn usage() -> ! {
     println!("Usage: {} <command>", env::args().next().unwrap());
@@ -21,49 +20,10 @@ fn usage() -> ! {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct Config<'a> {
+pub struct Config<'a> {
     target: &'a str,
     email: &'a str,
     passwd: &'a str,
-}
-
-fn send_mail(email: Email, config: &Config) {
-    let mut transport = SmtpTransportBuilder::new(("smtp.gmail.com", SUBMISSION_PORT))
-        .expect("Failed to create transport")
-        .credentials(config.email, config.passwd)
-        .build();
-
-    transport.send(email).expect("Failed to send the e-mail");
-}
-
-struct CommandStatusMail {
-    cmdline: Vec<String>,
-    duration: Duration,
-    status: ExitStatus,
-}
-
-impl CommandStatusMail {
-    fn create_email(&self, config: &Config) -> Result<Email, Error> {
-        let body = format!(
-            "Command: {}\n\
-            Execution time: {}.{:03} s\n\
-            Exit code: {}",
-            self.cmdline.join(" "),
-            self.duration.as_secs(),
-            self.duration.subsec_nanos() / 1e6 as u32,
-            match self.status.code() {
-                Some(code) => code.to_string(),
-                None => String::from("killed by a signal"),
-            }
-        );
-
-        EmailBuilder::new()
-            .to(config.target)
-            .from(config.email)
-            .subject("Computation finished")
-            .text(&body)
-            .build()
-    }
 }
 
 fn main() {
