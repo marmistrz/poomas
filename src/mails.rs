@@ -9,7 +9,8 @@ use lettre::transport::EmailTransport;
 use Config;
 
 pub fn send_mail(email: Email, config: &Config) {
-    let mut transport = SmtpTransportBuilder::new(("smtp.gmail.com", SUBMISSION_PORT))
+    let smtp: &str = &config.smtp;
+    let mut transport = SmtpTransportBuilder::new((smtp, SUBMISSION_PORT))
         .expect("Failed to create transport")
         .credentials(config.email, config.passwd)
         .build();

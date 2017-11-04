@@ -6,6 +6,7 @@ extern crate toml;
 
 mod mails;
 
+use std::borrow::Cow;
 use std::env;
 use std::fs::File;
 use std::io::Read;
@@ -24,6 +25,8 @@ pub struct Config<'a> {
     target: &'a str,
     email: &'a str,
     passwd: &'a str,
+    #[serde(default)]
+    smtp: Cow<'a, str>, // FIXME use a Cow
 }
 
 fn main() {
@@ -36,7 +39,16 @@ fn main() {
     file.read_to_string(&mut cfgstr).expect(
         "Failed to read the configuration file",
     );
-    let config: Config = toml::from_str(&cfgstr).expect("Failed to load configuration");
+    let mut config: Config = toml::from_str(&cfgstr).expect("Failed to load configuration");
+
+    // TODO add some more robust default value handling
+    if config.smtp == "" {
+        let mut s = config.email.split('@').skip(1);
+        let domain = s.next().expect("Invalid e-mail format: no domain");
+        let smtp = "smtp.".to_string() + domain;
+        println!("Assuming smtp server: {}", smtp);
+        config.smtp = Cow::Owned(smtp);
+    }
 
     let mut args = env::args().skip(1).peekable();
     if args.peek().is_none() {
