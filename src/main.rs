@@ -62,7 +62,7 @@ fn main() {
     println!("============= Output: =============");
 
     let start = Instant::now();
-    let status = cmd.status().unwrap();
+    let status = cmd.status().expect("Failed to launch the command");
     let exec_time = start.elapsed();
     println!("===================================");
 
