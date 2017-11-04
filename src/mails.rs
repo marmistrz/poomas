@@ -52,11 +52,13 @@ impl CommandStatusMail {
 mod tests {
     use super::*;
     use std::os::unix::process::ExitStatusExt;
+    use std::borrow::Cow;
 
     const CONFIG: Config = Config {
         target: "target",
         email: "email",
         passwd: "passwd",
+        smtp: Cow::Borrowed("smtp"),
     };
 
     #[test]
