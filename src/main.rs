@@ -3,7 +3,10 @@ extern crate lettre;
 extern crate serde_derive;
 extern crate time;
 extern crate toml;
+#[macro_use]
+extern crate clap;
 
+mod args;
 mod mails;
 
 use std::borrow::Cow;
