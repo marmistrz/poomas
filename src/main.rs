@@ -13,15 +13,10 @@ use std::borrow::Cow;
 use std::env;
 use std::fs::File;
 use std::io::Read;
-use std::process::{Command, exit};
+use std::process::Command;
 use std::time::Instant;
 
 use mails::{CommandStatusMail, send_mail};
-
-fn usage() -> ! {
-    println!("Usage: {} <command>", env::args().next().unwrap());
-    exit(1)
-}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config<'a> {
@@ -53,11 +48,9 @@ fn main() {
         config.smtp = Cow::Owned(smtp);
     }
 
-    let mut args = env::args().skip(1).peekable();
-    if args.peek().is_none() {
-        usage();
-    }
-    let cmdline: Vec<_> = args.collect();
+    let arg_matches = args::get_parser().get_matches();
+    let cmdline: Vec<_> = arg_matches.values_of("command").unwrap().collect();
+    let jobname = arg_matches.value_of("jobname");
 
     let mut cmd = Command::new(&cmdline[0]);
     cmd.args(&cmdline[1..]);
@@ -74,6 +67,7 @@ fn main() {
         cmdline: cmdline,
         duration: exec_time,
         status: status,
+        jobname: jobname,
     }.create_email(&config)
         .expect("Failed to build an e-mail");
     send_mail(email, &config);
