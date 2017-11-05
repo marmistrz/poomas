@@ -2,11 +2,15 @@
 name = "runner"
 version = "0.1.0"
 authors = ["Marcin Mielniczuk <marmistrz.dev@zoho.eu>"]
+lto = true
 
 [dependencies]
-lettre = "*"
-time = "*"
-serde = "*"
-serde_derive = "*"
-toml = "*"
-clap = "*"
+lettre = "0.6"
+time = "0.1"
+serde = "1"
+serde_derive = "1"
+toml = "0.4"
+clap = "2"
+
+[profile.release]
+lto = true
