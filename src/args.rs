@@ -12,7 +12,7 @@ pub fn get_parser<'a, 'b>() -> App<'a, 'b> {
                 .short("J")
                 .required(false)
                 .takes_value(true)
-                .help("Adds a library to be injected"),
+                .help("Set the job name"),
         )
         .arg(
             Arg::with_name("command")
