@@ -30,7 +30,7 @@ pub struct Config<'a> {
 fn main() {
     let path = env::current_dir()
         .expect("Failed to get current directory")
-        .join("runner.toml");
+        .join("poomas.toml");
 
     let mut file = File::open(path).expect("Failed to open configuration file");
     let mut cfgstr = String::new();
