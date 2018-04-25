@@ -1,8 +1,7 @@
 [package]
-name = "runner"
+name = "poomas"
 version = "0.1.0"
 authors = ["Marcin Mielniczuk <marmistrz.dev@zoho.eu>"]
-lto = true
 
 [dependencies]
 lettre = "0.6"
