@@ -15,6 +15,13 @@ pub fn get_parser<'a, 'b>() -> App<'a, 'b> {
                 .help("Set the job name"),
         )
         .arg(
+            Arg::with_name("config")
+                .short("c")
+                .required(false)
+                .takes_value(true)
+                .help("Override the configuration file. Defaults to poomas.toml"),
+        )
+        .arg(
             Arg::with_name("command")
                 .multiple(true)
                 .required(true)
@@ -44,6 +51,18 @@ mod tests {
         assert_eq!(
             matches.values_of("command").unwrap().collect::<Vec<_>>(),
             ["echo"]
+        );
+        assert_eq!(matches.value_of("jobname").unwrap(), "xd");
+    }
+
+    #[test]
+    fn test_config() {
+        let matches =
+            get_parser().get_matches_from(&["./executable", "-J", "xd", "-c", "xd.toml", "echo"]);
+
+        assert_eq!(
+            matches.values_of("config").unwrap().collect::<Vec<_>>(),
+            ["xd.toml"]
         );
         assert_eq!(matches.value_of("jobname").unwrap(), "xd");
     }
