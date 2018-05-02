@@ -24,7 +24,7 @@ pub struct Config<'a> {
     email: &'a str,
     passwd: &'a str,
     #[serde(default)]
-    smtp: Cow<'a, str>, // FIXME use a Cow
+    smtp: Cow<'a, str>,
 }
 
 fn main() {
