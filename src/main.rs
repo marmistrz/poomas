@@ -1,3 +1,5 @@
+#[macro_use]
+extern crate failure;
 extern crate lettre;
 #[macro_use]
 extern crate serde_derive;
@@ -9,6 +11,7 @@ extern crate clap;
 mod args;
 mod mails;
 
+use failure::ResultExt;
 use std::borrow::Cow;
 use std::env;
 use std::fs::File;
@@ -28,7 +31,14 @@ pub struct Config<'a> {
 }
 
 fn main() {
-    let path = env::current_dir().expect("Failed to get current directory");
+    if let Err(e) = run() {
+        eprintln!("error: {}", e);
+        std::process::exit(1);
+    }
+}
+
+fn run() -> Result<(), failure::Error> {
+    let path = env::current_dir().context("Failed to get current directory")?;
 
     let arg_matches = args::get_parser().get_matches();
     let cmdline: Vec<_> = arg_matches.values_of("command").unwrap().collect();
@@ -38,16 +48,17 @@ fn main() {
         path.join(name)
     };
 
-    let mut file = File::open(config_file).expect("Failed to open configuration file");
+    let mut file = File::open(config_file).context("Failed to open configuration file")?;
     let mut cfgstr = String::new();
     file.read_to_string(&mut cfgstr)
-        .expect("Failed to read the configuration file");
-    let mut config: Config = toml::from_str(&cfgstr).expect("Failed to load configuration");
+        .context("Failed to read the configuration file")?;
+    let mut config: Config = toml::from_str(&cfgstr).context("Failed to load configuration")?;
 
     // TODO add some more robust default value handling
     if config.smtp == "" {
         let mut s = config.email.split('@').skip(1);
-        let domain = s.next().expect("Invalid e-mail format: no domain");
+        let domain = s.next()
+            .ok_or(format_err!("Invalid e-mail format: no domain"))?;
         let smtp = "smtp.".to_string() + domain;
         println!("Assuming smtp server: {}", smtp);
         config.smtp = Cow::Owned(smtp);
@@ -59,7 +70,7 @@ fn main() {
     println!("============= Output: =============");
 
     let start = Instant::now();
-    let status = cmd.status().expect("Failed to launch the command");
+    let status = cmd.status().context("Failed to launch the command")?;
     let exec_time = start.elapsed();
     println!("===================================");
 
@@ -69,7 +80,8 @@ fn main() {
         status: status,
         jobname: jobname,
     }.create_email(&config)
-        .expect("Failed to build an e-mail");
+        .context("Failed to build an e-mail")?;
     send_mail(email, &config);
     println!("E-mail sent!");
+    Ok(())
 }
