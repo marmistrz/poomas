@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate failure;
 extern crate lettre;
+extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate time;
@@ -9,9 +10,12 @@ extern crate toml;
 extern crate clap;
 
 mod args;
+mod jobdb;
 mod mails;
+mod result;
 
 use failure::ResultExt;
+use result::Result;
 use std::borrow::Cow;
 use std::env;
 use std::fs::File;
@@ -37,7 +41,7 @@ fn main() {
     }
 }
 
-fn run() -> Result<(), failure::Error> {
+fn run() -> Result<()> {
     let path = env::current_dir().context("Failed to get current directory")?;
 
     let arg_matches = args::get_parser().get_matches();
@@ -66,13 +70,20 @@ fn run() -> Result<(), failure::Error> {
 
     let mut cmd = Command::new(&cmdline[0]);
     cmd.args(&cmdline[1..]);
-    println!("Running: {}", cmdline.join(" "));
+    let cmdline_human = cmdline.join(" ");
+    println!("Running: {}", cmdline_human);
     println!("============= Output: =============");
 
     let start = Instant::now();
     let status = cmd.status().context("Failed to launch the command")?;
     let exec_time = start.elapsed();
     println!("===================================");
+
+    if let Some(dbfilename) = arg_matches.value_of("database-file") {
+        let db = jobdb::JobDB::new(dbfilename.to_owned());
+        db.add_job(&cmdline_human, &exec_time)?;
+        println!("Database updated!");
+    }
 
     let email = CommandStatusMail {
         cmdline: cmdline,

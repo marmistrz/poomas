@@ -10,6 +10,7 @@ pub fn get_parser<'a, 'b>() -> App<'a, 'b> {
         .arg(
             Arg::with_name("jobname")
                 .short("J")
+                .long("jobname")
                 .required(false)
                 .takes_value(true)
                 .help("Set the job name"),
@@ -17,9 +18,18 @@ pub fn get_parser<'a, 'b>() -> App<'a, 'b> {
         .arg(
             Arg::with_name("config")
                 .short("c")
+                .long("config")
                 .required(false)
                 .takes_value(true)
                 .help("Override the configuration file. Defaults to poomas.toml"),
+        )
+        .arg(
+            Arg::with_name("database-file")
+                .short("d")
+                .long("database")
+                .required(false)
+                .takes_value(true)
+                .help("Enable saving the job database in the TOML format."),
         )
         .arg(
             Arg::with_name("command")
@@ -64,6 +74,29 @@ mod tests {
             matches.values_of("config").unwrap().collect::<Vec<_>>(),
             ["xd.toml"]
         );
+        assert_eq!(matches.value_of("jobname").unwrap(), "xd");
+    }
+
+    #[test]
+    fn test_db() {
+        let matches =
+            get_parser().get_matches_from(&["./executable", "-J", "xd", "-d", "xd.toml", "echo"]);
+
+        assert_eq!(
+            matches
+                .values_of("database-file")
+                .unwrap()
+                .collect::<Vec<_>>(),
+            ["xd.toml"]
+        );
+        assert_eq!(matches.value_of("jobname").unwrap(), "xd");
+    }
+
+    #[test]
+    fn test_nodb() {
+        let matches = get_parser().get_matches_from(&["./executable", "-J", "xd", "echo"]);
+
+        assert_eq!(matches.values_of("database-file").map(|_| ()), None);
         assert_eq!(matches.value_of("jobname").unwrap(), "xd");
     }
 
