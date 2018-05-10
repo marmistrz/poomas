@@ -79,10 +79,21 @@ fn run() -> Result<()> {
     let exec_time = start.elapsed();
     println!("===================================");
 
+    // we want to continue the execution even if this fails
+    // I don't currently have an idea how to do it cleaner than to store it
+    // looks like a limitation of the failure crate. Is it maintained at all?
+    let mut db_save_res = Ok(());
     if let Some(dbfilename) = arg_matches.value_of("database-file") {
         let db = jobdb::JobDB::new(dbfilename.to_owned());
-        db.add_job(&cmdline_human, &exec_time)?;
-        println!("Database updated!");
+        let res = db.add_job(&cmdline_human, &exec_time);
+        match res {
+            Ok(_) => eprintln!("Updating the database successful"),
+            Err(e) => {
+                eprintln!("Error updating the databse: {}", e);
+                // This sucks, we want some context, but the types mismatch
+                db_save_res = Err(e);
+            }
+        }
     }
 
     let email = CommandStatusMail {
@@ -92,7 +103,10 @@ fn run() -> Result<()> {
         jobname: jobname,
     }.create_email(&config)
         .context("Failed to build an e-mail")?;
+    // FIXME this should return a Result
     send_mail(email, &config);
-    println!("E-mail sent!");
-    Ok(())
+    eprintln!("E-mail sent!");
+
+    // Hack continued, see the comment before saving the DB ...
+    db_save_res
 }
