@@ -10,6 +10,7 @@ struct Job {
     id: i32,
     command: String,
     time: u64,
+    jobname: Option<String>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -33,11 +34,12 @@ impl JobDB {
         JobDB { file: file }
     }
 
-    pub fn add_job(&self, command: &str, duration: &Duration) -> Result<()> {
+    pub fn add_job(&self, command: &str, duration: &Duration, name: Option<String>) -> Result<()> {
         let job = Job {
             id: 0,
             command: command.to_owned(),
             time: duration.as_secs(),
+            jobname: name,
         };
         update_jobs(job, &self.file)
     }
@@ -68,6 +70,7 @@ mod tests {
             id: 0,
             command: "".to_owned(),
             time: 0,
+            jobname: "xD".to_owned().into(),
         };
         let output = update_jobs_str(job.clone(), "".to_owned()).unwrap();
         let db: Jobs = toml::from_str(&output).unwrap();
@@ -77,6 +80,7 @@ mod tests {
             id: 1,
             command: "xd".to_owned(),
             time: 200,
+            jobname: "XD".to_owned().into(),
         };
 
         let output = update_jobs_str(job2.clone(), output).unwrap();

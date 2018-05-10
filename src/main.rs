@@ -85,7 +85,7 @@ fn run() -> Result<()> {
     let mut db_save_res = Ok(());
     if let Some(dbfilename) = arg_matches.value_of("database-file") {
         let db = jobdb::JobDB::new(dbfilename.to_owned());
-        let res = db.add_job(&cmdline_human, &exec_time);
+        let res = db.add_job(&cmdline_human, &exec_time, jobname.map(str::to_string));
         match res {
             Ok(_) => eprintln!("Updating the database successful"),
             Err(e) => {
