@@ -1,0 +1,17 @@
+version: 2
+jobs:
+  build:
+    working_directory: ~/poomas
+    docker:
+      - image: rust:latest
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Build
+          command: |
+            cargo build
+      - run:
+          name: Run tests
+          command: |
+            cargo test
