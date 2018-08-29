@@ -36,7 +36,11 @@ pub struct Config<'a> {
 
 fn main() {
     if let Err(e) = run() {
-        eprintln!("error: {}", e);
+        eprint!("error");
+        for cause in e.iter_chain() {
+            eprint!(": {}", cause);
+        }
+        eprintln!("");
         std::process::exit(1);
     }
 }
